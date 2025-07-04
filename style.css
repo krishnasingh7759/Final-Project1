@@ -3,7 +3,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Segoe UI", sans-serif;
-  background: url('money.php') no-repeat center center fixed;
+  background: url('money.jpeg') no-repeat center center fixed;
   background-size: cover;
   color: #333;
 }
@@ -15,7 +15,7 @@ body {
   padding: 30px 20px;
   background: url('money3.jpg') no-repeat center center;
   background-size: cover;
-  color: #fff;
+  color: orange;
   border-radius: 15px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(5px); /* Optional: modern blur effect */
@@ -146,4 +146,35 @@ button:hover {
   padding: 10px;
   border-radius: 10px;
   margin-top: 10px;
+}
+.mission-vision, .how-it-works, .testimonials {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.how-it-works ol {
+  text-align: left;
+  max-width: 500px;
+  margin: 0 auto;
+  padding-left: 20px;
+  font-size: 1rem;
+}
+
+.testimonials blockquote {
+  background: black;
+  border-left: 5px solid #007f83;
+  padding: 10px 20px;
+  margin: 15px auto;
+  max-width: 500px;
+  font-style: italic;
+  border-radius: 10px;
+}
+
+.footer {
+  margin-top: 40px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: rosybrown;
+  padding-top: 20px;
+  border-top: 1px solid #ccc;
 }
