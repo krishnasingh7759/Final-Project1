@@ -15,7 +15,7 @@ body {
   padding: 30px 20px;
   background: url('money3.jpg') no-repeat center center;
   background-size: cover;
-  color: orange;
+  color: #60B5FF;
   border-radius: 15px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(5px); /* Optional: modern blur effect */
