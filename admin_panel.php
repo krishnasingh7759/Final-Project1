@@ -1,24 +1,26 @@
 <?php
+include("db.php");
 session_start();
 
-// ✅ Check for admin access
-if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'admin') {
-  header("Location: login.php?redirected=1");
-  exit();
+// Redirect if not logged in or not admin
+if (!isset($_SESSION["user"]) || $_SESSION["user"]["role"] != "admin") {
+    header("Location: login.php");
+    exit();
 }
 
-// ✅ Include DB connection
-include("db.php");
-
-// ✅ Debugging: Show SQL errors if any
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+// Fetch fee records
+$fees = [];
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT); // Enable detailed SQL errors
 
 try {
-    $query = "SELECT f.id, s.name, s.registration_no, f.admission_fee, f.registration_fee, f.exam_fee, f.hostel_fee, f.date
-              FROM fees f
-              JOIN students s ON f.registration_no = s.registration_no
-              ORDER BY f.date DESC";
+    $query = "SELECT registration_no, admission_fee, registration_fee, exam_fee, hostel_fee, fee_month, fee_date
+              FROM fees
+              ORDER BY fee_date DESC";
     $result = mysqli_query($conn, $query);
+    
+    while ($row = mysqli_fetch_assoc($result)) {
+        $fees[] = $row;
+    }
 } catch (mysqli_sql_exception $e) {
     die("Query failed: " . $e->getMessage());
 }
@@ -27,40 +29,69 @@ try {
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Admin Panel - All Payments</title>
-  <link rel="stylesheet" href="style.css">
+    <title>Admin Panel - Fee Records</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #222;
+        }
+        th, td {
+            border: 1px solid #999;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #990000;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f7f7f7;
+        }
+        tr:nth-child(odd) {
+            background-color: #f7f7f7;
+        }
+        .container {
+            padding: 20px;
+            
+        }
+        h1 {
+            color: #990000;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
-  <?php include 'nav.php'; ?>
-  <h1>📋 All Student Payment Records</h1>
+    <?php include("nav.php"); ?>
+    <h1>🛠 Admin Panel - All Student Fee Records</h1>
 
-  <table class="fee-chart">
-    <thead>
-      <tr>
-        <th>Student Name</th>
-        <th>Registration No</th>
-        <th>Admission Fee</th>
-        <th>Registration Fee</th>
-        <th>Exam Fee</th>
-        <th>Hostel Fee</th>
-        <th>Payment Date</th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php while ($row = mysqli_fetch_assoc($result)): ?>
-      <tr>
-        <td><?= htmlspecialchars($row['name']) ?></td>
-        <td><?= htmlspecialchars($row['registration_no']) ?></td>
-        <td>₹<?= $row['admission_fee'] ?></td>
-        <td>₹<?= $row['registration_fee'] ?></td>
-        <td>₹<?= $row['exam_fee'] ?></td>
-        <td>₹<?= $row['hostel_fee'] ?></td>
-        <td><?= date("d-m-Y", strtotime($row['date'])) ?></td>
-      </tr>
-      <?php endwhile; ?>
-    </tbody>
-  </table>
+    <?php if (count($fees) > 0): ?>
+    <table>
+        <tr>
+            <th>Registration No</th>
+            <th>Month</th>
+            <th>Admission Fee</th>
+            <th>Registration Fee</th>
+            <th>Exam Fee</th>
+            <th>Hostel Fee</th>
+            <th>Payment Date</th>
+        </tr>
+        <?php foreach ($fees as $fee): ?>
+        <tr>
+            <td><?= htmlspecialchars($fee['registration_no']) ?></td>
+            <td><?= htmlspecialchars($fee['fee_month']) ?></td>
+            <td>₹<?= number_format($fee['admission_fee'], 2) ?></td>
+            <td>₹<?= number_format($fee['registration_fee'], 2) ?></td>
+            <td>₹<?= number_format($fee['exam_fee'], 2) ?></td>
+            <td>₹<?= number_format($fee['hostel_fee'], 2) ?></td>
+            <td><?= date("d-m-Y", strtotime($fee['fee_date'])) ?></td>
+        </tr>
+        <?php endforeach; ?>
+    </table>
+    <?php else: ?>
+        <p style="color:red;">❌ No fee records found.</p>
+    <?php endif; ?>
 </div>
 </body>
 </html>

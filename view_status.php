@@ -1,48 +1,73 @@
-<?php include('db.php'); ?>
+<?php
+include("db.php");
+session_start();
+
+if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'student') {
+    header("Location: login.php");
+    exit();
+}
+
+$registration_no = '';
+$fees = [];
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $registration_no = $_POST['registration_no'];
+    
+    $query = "SELECT fee_month, admission_fee, registration_fee, exam_fee, hostel_fee, fee_date 
+              FROM fees 
+              WHERE registration_no = '$registration_no' 
+              ORDER BY fee_date DESC";
+    
+    $result = mysqli_query($conn, $query);
+    
+    while ($row = mysqli_fetch_assoc($result)) {
+        $fees[] = $row;
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fee Status</title>
+  <title>View Fee Status</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
-  <h2>📄 Fee Status</h2>
-  <?php include('nav.php'); ?>
-  <form method="get">
-    <input type="text" name="registration_no" placeholder="Enter Registration Number" required>
-    <button type="submit">View</button>
-  </form>
-  <?php
-  if (isset($_GET['registration_no'])) {
-    $reg = $_GET['registration_no'];
-    $result = $conn->query("
-      SELECT s.name, s.course,
-        SUM(f.hostel_fee) AS hostel,
-        SUM(f.admission_fee) AS admission,
-        SUM(f.exam_fee) AS exam,
-        SUM(f.registration_fee) AS regfee
-      FROM students s
-      JOIN fees f ON s.registration_no = f.registration_no
-      WHERE s.registration_no = '$reg'
-      GROUP BY s.name, s.course
-    ");
+  <?php include("nav.php"); ?>
+  <h1>📄 View Fee Status</h1>
 
-    if ($row = $result->fetch_assoc()) {
-      echo "<p><strong>Name:</strong> {$row['name']}</p>";
-      echo "<p><strong>Course:</strong> {$row['course']}</p>";
-      echo "<p><strong>Hostel Fee Paid:</strong> ₹{$row['hostel']}</p>";
-      echo "<p><strong>Admission Fee Paid:</strong> ₹{$row['admission']}</p>";
-      echo "<p><strong>Exam Fee Paid:</strong> ₹{$row['exam']}</p>";
-      echo "<p><strong>Registration Fee Paid:</strong> ₹{$row['regfee']}</p>";
-      $total = $row['hostel'] + $row['admission'] + $row['exam'] + $row['regfee'];
-      echo "<p><strong>Total Paid:</strong> ₹{$total}</p>";
-    } else {
-      echo "<p>No records found for this registration number.</p>";
-    }
-  }
-  ?>
+  <form method="post">
+    <label>Enter Your Registration Number:</label><br>
+    <input type="text" name="registration_no" required value="<?= htmlspecialchars($registration_no) ?>"><br><br>
+    <button type="submit">🔍 Check Status</button>
+  </form>
+
+  <?php if (!empty($fees)): ?>
+  <h3>Fee History for <?= htmlspecialchars($registration_no) ?>:</h3>
+  <table border="1" cellpadding="8">
+    <tr>
+      <th>Month</th>
+      <th>Admission Fee</th>
+      <th>Registration Fee</th>
+      <th>Exam Fee</th>
+      <th>Hostel Fee</th>
+      <th>Payment Date</th>
+    </tr>
+    <?php foreach ($fees as $row): ?>
+    <tr>
+      <td><?= $row['fee_month'] ?></td>
+      <td>₹<?= $row['admission_fee'] ?></td>
+      <td>₹<?= $row['registration_fee'] ?></td>
+      <td>₹<?= $row['exam_fee'] ?></td>
+      <td>₹<?= $row['hostel_fee'] ?></td>
+      <td><?= date("d-m-Y", strtotime($row['fee_date'])) ?></td>
+    </tr>
+    <?php endforeach; ?>
+  </table>
+  <?php elseif ($_SERVER["REQUEST_METHOD"] == "POST"): ?>
+    <p style="color:red;">❌ No fee records found for registration number: <?= htmlspecialchars($registration_no) ?></p>
+  <?php endif; ?>
 </div>
 </body>
 </html>
